@@ -22,9 +22,9 @@ function xmlParser(xml, callback) {
     });
 }
 
-function wxInit(baseRequest, xmlParse, callback) {
+function wxInit(baseRequest, passTicket, callback) {
     request({
-        url: 'https://web.wechat.com/cgi-bin/mmwebwx-bin/webwxinit?r=' + Date.now() + '&lang=en_US&pass_ticket=' + xmlParse.error.pass_ticket[0],
+        url: 'https://web.wechat.com/cgi-bin/mmwebwx-bin/webwxinit?r=' + Date.now() + '&lang=en_US&pass_ticket=' + passTicket,
         method: 'POST',
         json: baseRequest
     }, (error, response, body) => {
@@ -32,7 +32,18 @@ function wxInit(baseRequest, xmlParse, callback) {
     });
 }
 
+function wxGetContact(baseRequest, passTicket, skey, callback) {
+    request({
+        url: 'https://web.wechat.com/cgi-bin/mmwebwx-bin/webwxgetcontact?pass_ticket=' + passTicket + '&skey=' + skey + '&r=' + Date.now(),
+        method: 'POST',
+        json: baseRequest
+    }, (error, response, body) => {
+        callback(body);
+    })
+}
+
 exports.wxLogin = wxLogin;
 exports.wxLoginRedirect = wxLoginRedirect;
 exports.wxInit = wxInit;
 exports.xmlParser = xmlParser;
+exports.wxGetContact = wxGetContact;

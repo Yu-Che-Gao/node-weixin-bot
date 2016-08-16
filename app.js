@@ -1,8 +1,4 @@
 const request = require('request');
-const queryString = require('querystring');
-const fs = require('fs');
-const xml2js = require('xml2js');
-const parseXML = xml2js.parseString;
 const express = require('express');
 const app = express();
 const wxBotLib = require('./weixin-bot-lib.js');
@@ -12,7 +8,7 @@ var uuid = '';
 
 app.set('view engine', 'pug');
 app.get('/login', (req, res) => {
-    request.post({ url: 'https://login.weixin.qq.com/jslogin', form: { appid: 'wx782c26e4c19acffb', fun: 'new', lang: 'zh_CN', _: timeStamp } }, function (err, httpResponse, body) {
+    request.post({ url: 'https://login.weixin.qq.com/jslogin', form: { appid: 'wx782c26e4c19acffb', fun: 'new', lang: 'zh_CN', _: Date.now() } }, function (err, httpResponse, body) {
         uuid = body.split('"')[1].trim();
         res.render('login', { qrcodeURL: 'https://login.weixin.qq.com/qrcode/' + uuid + '?t=webwx' });
     });
@@ -31,8 +27,12 @@ app.get('/correct_login', (req, res) => {
                     }
                 };
 
-                wxBotLib.wxInit(baseRequest, xmlParse, (initResponse) => {
-                    res.send(initResponse);
+                let passTicket = xmlParse.error.pass_ticket[0];
+
+                wxBotLib.wxInit(baseRequest, passTicket, (initResponse) => {
+                    wxBotLib.wxGetContact(baseRequest, passTicket, baseRequest.Skey, (getContactResponse) => {
+                        res.send(getContactResponse);
+                    })
                 })
             })
         })
