@@ -8,12 +8,7 @@ const app = express();
 const wxBotLib = require('./weixin-bot-lib.js');
 const port = process.env.PORT || 3000;
 
-var timeStamp = Math.round(new Date().getTime() / 1000);
 var uuid = '';
-
-function getRandom(minNum, maxNum) {	//取得 minNum(最小值) ~ maxNum(最大值) 之間的亂數
-    return Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
-}
 
 app.set('view engine', 'pug');
 app.get('/login', (req, res) => {
@@ -45,5 +40,3 @@ app.get('/correct_login', (req, res) => {
 });
 
 app.listen(port, () => { console.log('listening on port ' + port) });
-
-
