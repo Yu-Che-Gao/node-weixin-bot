@@ -4,20 +4,36 @@ const xml2js = require('xml2js');
 const parseXML = xml2js.parseString;
 
 function wxLogin(uuid, callback) {
-    request('https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=0&uuid=' + uuid + '&r=' + Date.now(), (error, response, body) => {
+    request({
+        url:'https://login.web.wechat.com/cgi-bin/mmwebwx-bin/login?tip=0&uuid=' + uuid + '&r=' + Date.now(),
+        headers: {
+            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+        }
+    }, (error, response, body) => {
         callback(body);
     });
 }
 
 function wxLoginRedirect(redirectBody, callback) {
     let redirectUri = redirectBody.split('"')[1].trim();
-    request(redirectUri + '&fun=new', (error, response, body) => {
+    console.log(redirectUri)
+    request({
+        url:redirectUri,
+        headers:{
+            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+        }
+    }, (error, response, body) => {
+        // console.log(response);
         callback(body);
     });
 }
 
 function xmlParser(xml, callback) {
     parseXML(xml, (err, result) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
         callback(result);
     });
 }

@@ -8,7 +8,7 @@ var uuid = '';
 
 app.set('view engine', 'pug');
 app.get('/login', (req, res) => {
-    request.post({ url: 'https://login.weixin.qq.com/jslogin', form: { appid: 'wx782c26e4c19acffb', fun: 'new', lang: 'zh_CN', _: Date.now() } }, function (err, httpResponse, body) {
+    request.post({ url: 'https://login.weixin.qq.com/jslogin', form: { appid: 'wx782c26e4c19acffb', fun: 'new', lang: 'zh_TW', _: Date.now() } }, function (err, httpResponse, body) {
         uuid = body.split('"')[1].trim();
         res.render('login', { qrcodeURL: 'https://login.weixin.qq.com/qrcode/' + uuid + '?t=webwx' });
     });
@@ -17,6 +17,7 @@ app.get('/login', (req, res) => {
 app.get('/correct_login', (req, res) => {
     wxBotLib.wxLogin(uuid, (loginResponse) => {
         wxBotLib.wxLoginRedirect(loginResponse, (redirectResponse) => {
+            console.log(redirectResponse);
             wxBotLib.xmlParser(redirectResponse, (xmlParse) => {
                 let baseRequest = {
                     'BaseRequest': {
@@ -28,10 +29,38 @@ app.get('/correct_login', (req, res) => {
                 };
 
                 let passTicket = xmlParse.error.pass_ticket[0];
-
                 wxBotLib.wxInit(baseRequest, passTicket, (initResponse) => {
-                    wxBotLib.wxGetContact(baseRequest, passTicket, baseRequest.Skey, (getContactResponse) => {
-                        res.send(getContactResponse);
+                    wxBotLib.wxGetContact(baseRequest, passTicket, baseRequest.Skey, (contactData) => {
+                        let memberList = contactData.MemberList;
+                        let groupList = memberList.filter((obj) => {
+                            if (obj.NickName == 'testgood') return true;
+                            else return false;
+                        })
+
+                        // res.send(groupList[0].UserName);
+                        let userName = groupList[0].UserName;
+                        
+                        console.log('userName: ' + userName);
+
+                        let sendMsgRequest = {
+                            baseRequest,
+                            'Msg': {
+                                'Type': 1,
+                                'Content': 'hihi, 我是高宇哲',
+                                'FromUserName': initResponse.User.UserName,
+                                'ToUserName': userName,
+                                'LocalID': (Date.now() + Math.random().toFixed(3)).replace('.', ''),
+                                'ClienMsgID': (Date.now() + Math.random().toFixed(3)).replace('.', '')
+                            }
+                        };
+
+                        request({
+                            url: 'https://web.wechat.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=' + passTicket,
+                            method: 'POST',
+                            json: sendMsgRequest
+                        }, (error, response, body) => {
+                            res.send(body);
+                        })
                     })
                 })
             })
